@@ -1,4 +1,4 @@
-package algo
+package drafts
 
 func permute[T any](arr []T, l, r int, gen chan []T, init bool) {
     if l == r {
