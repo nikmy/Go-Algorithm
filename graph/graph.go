@@ -45,3 +45,7 @@ func (g *Graph[Vertex, Edge]) HasEdge(from, to ID) bool {
     _, has := g.edges[getEdgeID(from, to)]
     return has
 }
+
+func (g *Graph[Vertex, Edge]) AddEdge(from, to ID, e *Edge) {
+    g.edges[getEdgeID(from, to)] = e
+}
