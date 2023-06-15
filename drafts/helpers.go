@@ -33,11 +33,11 @@ func Abs[T ordered](x, y T) T {
     return x - y
 }
 
-func LowerBound[T any](arr []T, x T, func less(x, y T) bool) {
+func LowerBound[T any](arr []T, x T, less func (T, T) bool) int {
     return sort.Search(len(arr), func (i int) bool { return less(x, arr[i]) })
 }
 
-func UpperBound[T any](arr []T, func less(x, y T) bool) {
+func UpperBound[T any](arr []T, x T, less func (T, T) bool) int {
     return sort.Search(len(arr), func (i int) bool {
         if i == len(arr) - 1 {
             return len(arr)
