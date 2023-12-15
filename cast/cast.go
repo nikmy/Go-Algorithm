@@ -2,12 +2,18 @@ package cast
 
 import (
 	"golang.org/x/exp/constraints"
-
-	"a.yandex-team.ru/library/go/slices"
 )
 
 type number interface {
 	constraints.Integer | constraints.Float
+}
+
+func mapSlice[From, To any, S ~[]From](slice S, callbackFn func(From) To) []To {
+	result := make([]To, 0, len(slice))
+	for _, elem := range slice {
+		result = append(result, callbackFn(elem))
+	}
+	return result
 }
 
 func StaticNumber[From, To number](from From) To {
@@ -15,7 +21,7 @@ func StaticNumber[From, To number](from From) To {
 }
 
 func StaticNumbers[From, To number, S ~[]From](slice S) []To {
-	return slices.Map(slice, StaticNumber[From, To])
+	return mapSlice(slice, StaticNumber[From, To])
 }
 
 type stringLike interface {
@@ -27,7 +33,7 @@ func StaticString[From stringLike](from From) string {
 }
 
 func StaticStrings[From stringLike, S ~[]From](slice S) []string {
-	return slices.Map(slice, StaticString[From])
+	return mapSlice(slice, StaticString[From])
 }
 
 func Dynamic[From any, To any](f From) To {
