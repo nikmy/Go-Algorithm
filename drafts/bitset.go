@@ -56,7 +56,7 @@ func (bs *Bitset) All() bool {
     return true
 }
 
-func (bs *Bitset) One() bool {
+func (bs *Bitset) Any() bool {
     allOnes := ^uint64(0)
     for _, b := range bs.data {
         if (b & allOnes) != 0 {

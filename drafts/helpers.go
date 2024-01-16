@@ -1,32 +1,15 @@
-import "sort"
+package drafts
 
-type ordered interface {
-    ~int   | ~uint   | ~int8    | ~uint8  |
-    ~int16 | ~uint16 | ~int32   | ~uint32 |
-    ~int64 | ~uint64 | ~float32 | ~float64
+import (
+    "golang.org/x/exp/constraints"
+    "sort"
+)
+
+type number interface {
+    constraints.Integer | constraints.Float
 }
 
-func Min[T ordered](args ...T) T {
-    m := args[0]
-    for _, x := range args[1:] {
-        if x < m {
-            m = x
-        }
-    }
-    return m
-}
-
-func Max[T ordered](args ...T) T {
-    m := args[0]
-    for _, x := range args[1:] {
-        if x > m {
-            m = x
-        }
-    }
-    return m
-}
-
-func Abs[T ordered](x, y T) T {
+func Distance[T number](x, y T) T {
     if x < y {
         return y - x
     }
@@ -40,7 +23,7 @@ func LowerBound[T any](arr []T, x T, less func (T, T) bool) int {
 func UpperBound[T any](arr []T, x T, less func (T, T) bool) int {
     return sort.Search(len(arr), func (i int) bool {
         if i == len(arr) - 1 {
-            return len(arr)
+            return false
         }
         return less(arr[i], x) && !less(arr[i+1], x)
     })
