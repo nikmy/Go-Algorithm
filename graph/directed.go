@@ -34,23 +34,19 @@ func (g *Graph[Vertex, Edge]) HasCycle() bool {
     return false
 }
 
-func (g *Graph[Vertex, Edge]) topSort(start ID, color *[]byte, sorted *[]ID, last *int) bool {
-    if c := (*color)[start]; c == 1 || c == 2 {
+func (g *Graph[Vertex, Edge]) topSort(v ID, visited []bool, sorted *[]ID) bool {
+    if visited[v] {
         return false
     }
+    visited[v] = true
 
-    (*color)[start] = 1
-
-    for _, n := range g.GetNeighborsByID(start) {
-        if !g.topSort(n, color, sorted, last) {
+    for _, n := range g.GetNeighborsByID(v) {
+        if !g.topSort(n, visited, sorted) {
             return false
         }
     }
 
-    (*color)[start] = 2
-
-    *last--
-    (*sorted)[*last] = start
+    *sorted = append(*sorted, v)
     return true
 }
 
@@ -58,14 +54,13 @@ func (g *Graph[Vertex, Edge]) TopSort() []ID {
     n := g.NVertices()
 
     sorted := make([]ID, 0, n)
-    color := make([]byte, n)
-    last := n
+    visited := make([]bool, n)
 
     for u := 0; u < g.NVertices(); u++ {
-        if color[u] == 2 {
+        if visited[u] {
             continue
         }
-        if !g.topSort(ID(u), &color, &sorted, &last) {
+        if !g.topSort(ID(u), visited, &sorted) {
             return nil
         }
     }

@@ -1,18 +1,9 @@
 package heap
 
-import "slices"
-
-func New[T any](lessFunc func(T, T) bool) *Heap[T] {
-	return &Heap[T]{
-		comp: lessFunc,
-		data: make([]T, 0),
-	}
-}
-
 func Make[T any](lessFunc func(T, T) bool, elems []T) *Heap[T] {
 	h := &Heap[T]{
 		comp: lessFunc,
-		data: slices.Clone(elems),
+		data: elems,
 	}
 	h.heapify()
 	return h
@@ -21,6 +12,7 @@ func Make[T any](lessFunc func(T, T) bool, elems []T) *Heap[T] {
 type Heap[T any] struct {
 	comp func(T, T) bool
 	data []T
+	size int
 }
 
 func (h *Heap[T]) heapify() {
@@ -30,11 +22,16 @@ func (h *Heap[T]) heapify() {
 }
 
 func (h *Heap[T]) Size() int {
-	return len(h.data)
+	return h.size
+}
+
+func (h *Heap[T]) Empty() bool {
+	return h.Size() == 0
 }
 
 func (h *Heap[T]) Insert(x T) {
 	h.data = append(h.data, x)
+	h.size++
 	h.siftUp(len(h.data) - 1)
 }
 
@@ -45,7 +42,7 @@ func (h *Heap[T]) GetMin() T {
 func (h *Heap[T]) ExtractMin() T {
 	m := h.data[0]
 	h.swap(0, len(h.data)-1)
-	h.data = h.data[:len(h.data)-1]
+	h.size--
 	h.siftDown(0)
 	return m
 }
