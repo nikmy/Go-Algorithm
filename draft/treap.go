@@ -1,4 +1,4 @@
-package drafts
+package draft
 
 import (
 	"golang.org/x/exp/rand"

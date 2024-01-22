@@ -1,4 +1,4 @@
-package drafts
+package draft
 
 type Stream[E any] interface {
 	Elem(int) E

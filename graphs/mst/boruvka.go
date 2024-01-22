@@ -1,6 +1,6 @@
 package mst
 
-import "github.com/nikmy/algo/dsu"
+import "github.com/nikmy/algo/container/dsu"
 
 // BoruvkaCost - O(ElogV)
 func BoruvkaCost(nVertices int, edges [][]int) int {

@@ -1,4 +1,4 @@
-package drafts
+package bitset
 
 import (
     "fmt"
@@ -10,13 +10,19 @@ type Bitset struct {
     lastBucketSize int
 }
 
-func NewBitset(size int) Bitset {
+func New(size int) Bitset {
     lastBucketSize, size := size&63, size>>6
     if lastBucketSize > 0 {
         size++
     }
     data := make([]uint64, size)
     return Bitset{data, lastBucketSize}
+}
+
+func (bs *Bitset) Xor(idx int) {
+    bucket, ind := idx>>6, uint64(idx&63)
+    mask := uint64(1) << ind
+    bs.data[bucket] ^= mask
 }
 
 func (bs *Bitset) Fix(idx int) {
