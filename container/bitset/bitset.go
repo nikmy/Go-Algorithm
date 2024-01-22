@@ -5,21 +5,48 @@ import (
     "math/bits"
 )
 
-type Bitset struct {
-    data           []uint64
-    lastBucketSize int
-}
-
-func New(size int) Bitset {
+func New(size int) *Bitset {
     lastBucketSize, size := size&63, size>>6
     if lastBucketSize > 0 {
         size++
     }
     data := make([]uint64, size)
-    return Bitset{data, lastBucketSize}
+    return &Bitset{data, lastBucketSize}
 }
 
-func (bs *Bitset) Xor(idx int) {
+func Equals(left, right *Bitset) bool {
+    if left.Size() != right.Size() {
+        return false
+    }
+    return !Xor(left, right).Any()
+}
+
+func Xor(bs, mask *Bitset) *Bitset {
+    if bs.Size() < mask.Size() {
+        bs, mask = mask, bs
+    }
+    xor := New(bs.Size())
+    for b := 0; b < mask.Size(); b++ {
+        xor.data[b] = bs.data[b] ^ mask.data[b]
+    }
+    copy(xor.data[mask.Size():], bs.data[mask.Size():])
+    return xor
+}
+
+type Bitset struct {
+    data           []uint64
+    lastBucketSize int
+}
+
+func (bs *Bitset) Size() int {
+    b := len(bs.data)
+    if b == 0 {
+        return 0
+    }
+    return (b - 1) << 6 + bs.lastBucketSize
+}
+
+func (bs *Bitset) FlipBit(idx int) {
     bucket, ind := idx>>6, uint64(idx&63)
     mask := uint64(1) << ind
     bs.data[bucket] ^= mask
