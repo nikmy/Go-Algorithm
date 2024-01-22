@@ -1,30 +1,5 @@
 package draft
 
-// Generalized DFS
-//
-//	@param base - checks for base case and return pair (baseCaseValue, isBaseCase)
-//	@param memo - storage for results for visited states
-//	@param calc - function that calculates result using abstract dfs function and current state
-//
-//	@return dfs - recursive DFS function
-func DFS[State comparable, Value any](
-	base func(State) (Value, bool),
-	memo map[State]Value,
-	calc func(func(State) Value, State) Value,
-) (dfs func(State) Value) {
-	dfs = func(s State) Value {
-		if v, ok := base(s); ok {
-			return v
-		}
-		if v, ok := memo[s]; ok {
-			return v
-		}
-		memo[s] = calc(dfs, s)
-		return memo[s]
-	}
-	return dfs
-}
-
 /*
 HasCycle implementation
 
