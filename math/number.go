@@ -17,3 +17,10 @@ type Complex interface {
 func Conjugate[T constraints.Complex](x T) T {
 	return T(cmplx.Conj(complex128(x)))
 }
+
+func Distance[T Real](a, b T) T {
+	if a > b {
+		return a - b
+	}
+	return b - a
+}

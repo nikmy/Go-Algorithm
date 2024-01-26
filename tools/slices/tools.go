@@ -1,9 +1,18 @@
 package slices
 
 import (
-	"cmp"
 	"golang.org/x/exp/constraints"
 )
+
+func Count[E comparable, S ~[]E](slice S, elem E) int {
+	var cnt int
+	for _, x := range slice {
+		if x == elem {
+			cnt++
+		}
+	}
+	return cnt
+}
 
 func Repeat[T any](elem T, n int) []T {
 	s := make([]T, n)
@@ -13,21 +22,8 @@ func Repeat[T any](elem T, n int) []T {
 	return s
 }
 
-func Compare[E constraints.Ordered, S1, S2 ~[]E](a S1, b S2) int {
-	if lCmp := cmp.Compare(len(a), len(b)); lCmp != 0 {
-		return lCmp
-	}
-
-	for i := range a {
-		if c := cmp.Compare(a[i], b[i]); c != 0 {
-			return c
-		}
-	}
-	return 0
-}
-
 type addable interface {
-	constraints.Ordered | constraints.Complex
+	constraints.Ordered | constraints.Complex | ~string
 }
 
 func Sum[E addable, S ~[]E](s S) E {
@@ -36,4 +32,20 @@ func Sum[E addable, S ~[]E](s S) E {
 		sum += x
 	}
 	return sum
+}
+
+func Mean[E interface {
+	constraints.Integer | constraints.Float
+}, S ~[]E](s S) E {
+	return Sum(s) / E(len(s))
+}
+
+func Prod[E interface {
+	constraints.Integer | constraints.Float | constraints.Complex
+}, S ~[]E](s S) E {
+	var p E
+	for _, x := range s {
+		p *= x
+	}
+	return p
 }
