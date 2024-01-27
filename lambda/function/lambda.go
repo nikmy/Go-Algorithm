@@ -1,17 +1,17 @@
 package function
 
+type Unit = struct{}
+
+func Invoke(action Lambda[Unit, Unit]) {
+	_ = action(Unit{})
+}
+
 func Const[T any](value T) Lambda[Unit, T] {
 	return func(Unit) T { return value }
 }
 
 func NewLambda[Arg, Result any](f func(Arg)Result) Lambda[Arg, Result] {
 	return f
-}
-
-type Unit = struct{}
-
-func Do(action Lambda[Unit, Unit]) {
-	_ = action(Unit{})
 }
 
 func NewAction[T any](f func()) Lambda[Unit, Unit] {

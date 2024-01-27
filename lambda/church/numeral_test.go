@@ -7,13 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type (
-	Int = Numeral
-)
-
-func eval(i Int) int {
+func evalInt(i Numeral) int {
 	depth := 0
-	counter := func(_ Int) Int {
+	counter := func(_ Numeral) Numeral {
 		depth++
 		return nil
 	}
@@ -22,52 +18,67 @@ func eval(i Int) int {
 	return depth
 }
 
-var n []Int
+var nums []Numeral
 
 func TestMain(m *testing.M) {
-	n = []Int{
-		func(f Int) Int { return func(x Int) Int { return x } },
-		func(f Int) Int { return func(x Int) Int { return f(x) } },
-		func(f Int) Int { return func(x Int) Int { return f(f(x)) } },
+	nums = []Numeral{
+		func(f Numeral) Numeral { return func(x Numeral) Numeral { return x } },
+		func(f Numeral) Numeral { return func(x Numeral) Numeral { return f(x) } },
+		func(f Numeral) Numeral { return func(x Numeral) Numeral { return f(f(x)) } },
 	}
 
 	for i := 3; i < 100; i++ {
-		n = append(n, Inc(n[len(n)-1]))
+		nums = append(nums, Inc(nums[len(nums)-1]))
 	}
 
 	os.Exit(m.Run())
 }
 
-func TestConstants(t *testing.T) {
-	for i := range n[:3] {
-		assert.Equal(t, i, eval(n[i]))
+func TestNumerals(t *testing.T) {
+	for i, n := range nums[:3] {
+		assert.Equal(t, i, evalInt(n))
 	}
 
-	assert.Equal(t, eval(n[0]), eval(Zero))
-	assert.Equal(t, eval(n[1]), eval(One))
-	assert.NotEqual(t, eval(One), eval(Zero))
+	assert.Equal(t, evalInt(nums[0]), evalInt(Zero))
+	assert.Equal(t, evalInt(nums[1]), evalInt(One))
+	assert.NotEqual(t, evalInt(One), evalInt(Zero))
 }
 
 func TestIncrement(t *testing.T) {
-	for i := range n[3:] {
-		assert.Equal(t, i, eval(n[i]))
+	for i, n := range nums[3:] {
+		assert.Equal(t, i, evalInt(n))
 	}
 }
 
 func TestAdd(t *testing.T) {
-	for i, a := range n {
-		for j, b := range n {
-			assert.Equal(t, i+j, eval(Add2(a, b)))
+	for i, a := range nums {
+		for j, b := range nums {
+			assert.Equal(t, i+j, evalInt(Add2(a, b)))
 		}
 	}
 
 }
 
 func TestMul(t *testing.T) {
-	for i, a := range n {
-		for j, b := range n {
-			exp, got := i*j, eval(Mul2(a, b))
+	for i, a := range nums {
+		for j, b := range nums {
+			exp, got := i*j, evalInt(Mul2(a, b))
 			assert.Equal(t, exp, got, "%d * %d = %d", i, j, got)
+		}
+	}
+}
+
+func TestDec(t *testing.T) {
+	for i := 1; i < len(nums); i++ {
+		assert.Equal(t, i-1, evalInt(Dec(nums[i])))
+	}
+	assert.Equal(t, 0, evalInt(Dec(Zero)))
+}
+
+func TestSub(t *testing.T) {
+	for i, a := range nums {
+		for j, b := range nums {
+			assert.Equal(t, max(0, i-j), evalInt(Sub2(a, b)))
 		}
 	}
 }

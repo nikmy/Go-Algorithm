@@ -8,29 +8,29 @@ import (
 
 func FuzzCarry(t *testing.F) {
 
-	r := func(env string, ctx int, a bool, b rune) Maybe[string] {
+	r := func(env string, ctx int, a bool, b rune) string {
 		switch {
 		case env == "test":
-			return Nothing[string]()
+			return ""
 		case ctx == 1:
-			return Just("1")
+			return "1"
 		case !a:
-			return Nothing[string]()
+			return ""
 		case ctx == 6:
-			return Just("6")
+			return "6"
 		case b == '_':
-			return Nothing[string]()
+			return ""
 		case env == "prod":
-			return Just(env)
+			return env
 		case b == '7':
-			return Just("6")
+			return "6"
 		default:
-			return Just("do it")
+			return "do it"
 		}
 	}
 
 	// F = int -> bool -> rune -> Maybe[string]
-	type F = Lambda[int, Lambda[bool, Lambda[rune, Maybe[string]]]]
+	type F = Lambda[int, Lambda[bool, Lambda[rune, string]]]
 
 	// R = string -> F
 	type R = Lambda[string, F]
