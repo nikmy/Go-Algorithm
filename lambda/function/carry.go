@@ -1,4 +1,4 @@
-package lambda
+package function
 
 func Carry2[Arg1, Arg2, Result any](f func(Arg1, Arg2) Result) Lambda[Arg1, Lambda[Arg2, Result]] {
 	return func(x Arg1) Lambda[Arg2, Result] {

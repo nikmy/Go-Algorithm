@@ -1,7 +1,11 @@
-package lambda
+package function
 
-func Const[T any](value T) func() T {
-	return func() T { return value }
+func Const[T any](value T) Lambda[Unit, T] {
+	return func(Unit) T { return value }
+}
+
+func NewLambda[Arg, Result any](f func(Arg)Result) Lambda[Arg, Result] {
+	return f
 }
 
 type Unit = struct{}

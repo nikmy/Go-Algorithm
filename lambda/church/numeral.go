@@ -1,4 +1,6 @@
-package lambda
+package church
+
+import . "github.com/nikmy/algo/lambda/function"
 
 func FixedPoint(f Numeral) Numeral {
 	return f
