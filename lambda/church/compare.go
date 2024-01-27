@@ -19,7 +19,7 @@ func LessOrEqual(m Numeral) Term {
 
 // Less m n == Not (LessOrEqual n m)
 func Less(m Numeral) Term {
-	return func(n Term) Term {
+	return func(n Term) Boolean {
 		return Not(LessOrEqual(n)(m))
 	}
 }

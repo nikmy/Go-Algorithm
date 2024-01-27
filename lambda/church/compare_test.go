@@ -1,14 +1,6 @@
 package church
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
-func assertBool(t *testing.T, exp bool, got Boolean) {
-	assert.Equal(t, exp, evalBool(got))
-}
+import "testing"
 
 func TestCompare(t *testing.T) {
 	// IsZero

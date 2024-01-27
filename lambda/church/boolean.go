@@ -23,24 +23,26 @@ func Not(p Boolean) Boolean {
 }
 
 // And p q == p ? q : p
-func And(p Boolean) Boolean {
+func And(p Boolean) Term {
 	return func(q Boolean) Boolean { return p(q)(p) }
 }
 
 // Or p q == p ? p : q
-func Or(p Boolean) Boolean {
+func Or(p Boolean) Term {
 	return func(q Boolean) Boolean { return p(p)(q) }
 }
 
 // Xor p q == p ? not q : q
-func Xor(p Boolean) Boolean {
+func Xor(p Boolean) Term {
 	return func(q Term) Term { return p(Not(q))(q) }
 }
 
 // Pair x y p == \x.\y.\p.pxy
 func Pair(left Term) Term {
 	return func(right Term) Term {
-		return func(p Term) Term { return p(left)(right) }
+		return func(p Term) Term {
+			return p(left)(right)
+		}
 	}
 }
 

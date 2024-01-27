@@ -1,30 +1,6 @@
 package church
 
-import (
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-)
-
-func evalBool(b Boolean) bool {
-	var (
-		value  bool
-		mark   Term = func(Term) Term { value = true; return nil }
-		unmark Term = func(Term) Term { value = false; return nil }
-	)
-
-	b(mark)(unmark)(False)
-
-	return value
-}
-
-func assertFalse(t *testing.T, b Boolean) {
-	assert.False(t, evalBool(b))
-}
-
-func assertTrue(t *testing.T, b Boolean) {
-	assert.True(t, evalBool(b))
-}
+import "testing"
 
 func TestBool(t *testing.T) {
 	assertFalse(t, False)
@@ -62,6 +38,6 @@ func TestPair(t *testing.T) {
 	assertTrue(t, Left(p))
 	assertFalse(t, Right(p))
 
-	assert.Equal(t, 0, evalInt(Left(Pair2(Zero, One))))
-	assert.Equal(t, 1, evalInt(Right(Pair2(Zero, One))))
+	assertInt(t, 0, Left(Pair2(Zero, One)))
+	assertInt(t, 1, Right(Pair2(Zero, One)))
 }

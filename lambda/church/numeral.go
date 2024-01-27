@@ -1,8 +1,5 @@
 package church
 
-// Term is lambda-abstraction
-type Term func(Term) Term
-
 // Numeral is such n that n f x == \f.f^n(x) = \f.f(f(...f(x)...)...)
 type Numeral = Term
 
