@@ -7,6 +7,14 @@
 It is amazing that in Go it is allowed to declare strange
 recursive types, which one is `Term`:
 ```go
+package church
+
+// Term is an abstraction of a function
+// that can be applied any number of
+// times to itself. It is the base
+// concept in lambda calculus. There
+// will be aliases for this type for
+// better readability.
 type Term func(Term) Term
 ```
 It means that we can implement pure lambda calculus. 'purity'
@@ -35,3 +43,4 @@ If you want to explore this funny code, I have an order for you:
 5. `compare.go` — they will save us
 6. `dirty.go` — disgusting hacks
 7. `numeral.go` — the main boss, division and mod
+8. `klop.go` — are you sure?

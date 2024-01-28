@@ -35,11 +35,11 @@ func Mul(m Numeral) Term {
 }
 
 /*
-Kleene's trick:
+	Kleene's trick:
 
-Let's define incStep(N) as Nth iteration of { Pair _ n |-> Pair n (Inc n) },
-so it maps (Pair `0` `0`) to (Pair (`N-1` f) (`N` f)), and the left side
-of N(incStep)(Pair 0 0) is "decremented" N
+	Let's define incStep(N) as Nth iteration of { Pair _ n |-> Pair n (Inc n) },
+	so it maps (Pair `0` `0`) to (Pair `N-1` `N`), and the left side
+	of N(incStep)(Pair `0` `0`) is "decremented" N
 */
 func incStep(p Term) Term {
 	return Pair(Right(p))(Inc(Right(p)))
@@ -79,15 +79,15 @@ func Sub(m Numeral) Term {
 
 	So, if a solution exists, Div is a fixed point of genDiv
 	combinator. To find a fixed point, we can use powerful
-	tool Y-combinator:
+	tool Y-combinator (see y_comb.go):
 
-		YComb == (\x.\y.y(xxy))(\x.\y.y(xxy))
+		yComb == (\x.\y.y(xxy))(\x.\y.y(xxy))
 
 	For any combinator F:
 
-		YComb F = (\x.\y.y(xxy)) (\x.\y.y(xxy)) F
-				= F((\x.\y.y(xxy)) (\x.\y.y(xxy)) F)
-				= F(YComb F)
+		yComb F = (\x.\y.y(xxy)) (\x.\y.y(xxy)) F
+			= F((\x.\y.y(xxy)) (\x.\y.y(xxy)) F)
+			= F(yComb F)
 
 	(if you don't understand the first transition, just
 	substitute (\x.\y.y(xxy)) as x and F as y into the first
@@ -95,20 +95,8 @@ func Sub(m Numeral) Term {
 
 	So, now we have a formula for Div:
 
-		Div == YComb (\G . Less(m, n) Zero Inc(G (Sub m n) n))
+		Div == yComb (\G . Less(m, n) Zero Inc(G (Sub m n) n))
 */
-
-// yCombPart == (\x.\y.y(xxy))
-func yCombPart(x Term) Term {
-	return func(y Term) Term {
-		return y(x(x)(y))
-	}
-}
-
-// YComb == (\x.\y.y(xxy))(\x.\y.y(xxy))
-func YComb(g Term) Term {
-	return (yCombPart)(yCombPart)(g)
-}
 
 // genDiv G == Less(m, n) Zero Inc(G (Sub m n) n)
 func genDiv(g Term) Term {
@@ -119,9 +107,9 @@ func genDiv(g Term) Term {
 	}
 }
 
-// div == YComb genDiv
+// div == yComb genDiv
 func div(m Numeral) Term {
-	return YComb(genDiv)(m)
+	return yComb(genDiv)(m)
 }
 
 var _ = div // unfortunately, it does not actually work :(
@@ -133,7 +121,7 @@ var _ = div // unfortunately, it does not actually work :(
 // overflow callstack (because go runtime
 // evaluates all arguments before apply).
 //
-// Test for this function does not check YComb
+// Test for this function does not check yComb
 // trick, but it checks recursive formula.
 func Div(m Numeral) Term {
 	return func(n Term) Numeral {
