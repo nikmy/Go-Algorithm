@@ -6,34 +6,12 @@ import (
 	"testing"
 )
 
-func evalInt(i Numeral) int {
-	depth := 0
-	counter := func(_ Numeral) Numeral {
-		depth++
-		return nil
-	}
-
-	i(counter)(nil)
-	return depth
-}
-
 func assertInt(t *testing.T, exp int, got Numeral, msgAndArgs ...any) {
-	assert.Equal(t, exp, evalInt(got), msgAndArgs...)
-}
-
-func evalBool(b Boolean) bool {
-	var (
-		value bool
-		mark  Term = func(Term) Term { value = true; return nil }
-		nop   Term = func(Term) Term { return nil }
-	)
-
-	b(mark)(nop)(nil)
-	return value
+	assert.Equal(t, exp, makeInt(got), msgAndArgs...)
 }
 
 func assertBool(t *testing.T, exp bool, got Boolean, msgAndArgs ...any) {
-	assert.Equal(t, exp, evalBool(got), msgAndArgs...)
+	assert.Equal(t, exp, makeBool(got), msgAndArgs...)
 }
 
 func assertFalse(t *testing.T, b Boolean) {

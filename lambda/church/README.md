@@ -21,9 +21,9 @@ shows incredible beauty of lambda calculus.
 
 ## Testing
 
-There are some files that break our rules: test files and `binary.go`.
-While first contains tricky mappings from lambda abstractions to Go
-built-in types, second one exists only for syntax sugaring (in tests).
+There are some files that break our rules: `dirty.go` and `binary.go`.
+First contains tricky mappings from lambda abstractions to Go built-in
+types for tests, second one exists only for syntax sugaring (in tests).
 
 ## Reading order
 
@@ -31,7 +31,7 @@ If you want to explore this funny code, I have an order for you:
 1. `basic.go` — obviously
 2. `numeral.go` — until you see something new and awkward
 3. `boolean.go` — nice guys
-4. `all_test.go` — it is time to learn how tests work
-5. `numeral.go` — before division
-6. `compare.go` — they will save us
-7. `numeral.go` — the main boss, division
+4. `numeral.go` — before division
+5. `compare.go` — they will save us
+6. `dirty.go` — disgusting hacks
+7. `numeral.go` — the main boss, division and mod

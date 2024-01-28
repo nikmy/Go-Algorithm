@@ -8,12 +8,12 @@ import (
 
 func TestNumerals(t *testing.T) {
 	for i, n := range nums[:3] {
-		assert.Equal(t, i, evalInt(n))
+		assert.Equal(t, i, makeInt(n))
 	}
 
-	assert.Equal(t, evalInt(nums[0]), evalInt(Zero))
-	assert.Equal(t, evalInt(nums[1]), evalInt(One))
-	assert.NotEqual(t, evalInt(One), evalInt(Zero))
+	assert.Equal(t, makeInt(nums[0]), makeInt(Zero))
+	assert.Equal(t, makeInt(nums[1]), makeInt(One))
+	assert.NotEqual(t, makeInt(One), makeInt(Zero))
 }
 
 func TestInc(t *testing.T) {
@@ -34,7 +34,7 @@ func TestAdd(t *testing.T) {
 func TestMul(t *testing.T) {
 	for i, a := range nums {
 		for j, b := range nums {
-			exp, got := i*j, evalInt(Mul2(a, b))
+			exp, got := i*j, makeInt(Mul2(a, b))
 			assert.Equal(t, exp, got, "%d * %d = %d", i, j, got)
 		}
 	}
@@ -51,6 +51,22 @@ func TestSub(t *testing.T) {
 	for i, a := range nums {
 		for j, b := range nums {
 			assertInt(t, max(0, i-j), Sub2(a, b))
+		}
+	}
+}
+
+func TestDiv(t *testing.T) {
+	for i, a := range nums {
+		for j := 1; j < i; j++ {
+			assertInt(t, i/j, Div2(a, nums[j]))
+		}
+	}
+}
+
+func TestMod(t *testing.T) {
+	for i, a := range nums {
+		for j := 1; j < i; j++ {
+			assertInt(t, i%j, Mod2(a, nums[j]))
 		}
 	}
 }

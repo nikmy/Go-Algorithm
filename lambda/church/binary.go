@@ -3,6 +3,8 @@ package church
 func Add2(m, n Numeral) Numeral { return Add(m)(n) }
 func Mul2(m, n Numeral) Numeral { return Mul(m)(n) }
 func Sub2(m, n Numeral) Numeral { return Sub(m)(n) }
+func Div2(m, n Numeral) Numeral { return Div(m)(n) }
+func Mod2(m, n Numeral) Numeral { return Mod(m)(n) }
 
 func Xor2(p, q Boolean) Boolean { return Xor(p)(q) }
 func And2(p, q Boolean) Boolean { return And(p)(q) }
