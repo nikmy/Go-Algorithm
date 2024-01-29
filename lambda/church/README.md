@@ -29,7 +29,7 @@ shows incredible beauty of lambda calculus.
 
 ## Testing
 
-There are some files that break our rules: `dirty.go` and `binary.go`.
+There are some files that break our rules: `all_tests.go` and `binary.go`.
 First contains tricky mappings from lambda abstractions to Go built-in
 types for tests, second one exists only for syntax sugaring (in tests).
 
@@ -38,9 +38,9 @@ types for tests, second one exists only for syntax sugaring (in tests).
 If you want to explore this funny code, I have an order for you:
 1. `basic.go` — obviously
 2. `numeral.go` — until you see something new and awkward
-3. `boolean.go` — nice guys
-4. `numeral.go` — before division
-5. `compare.go` — they will save us
-6. `dirty.go` — disgusting hacks
-7. `numeral.go` — the main boss, division and mod
-8. `klop.go` — are you sure?
+3. `all_tests.go` — know how do they work
+4. `boolean.go` — nice guys
+5. `numeral.go` — before division
+6. `compare.go` — they will save us
+7. `recurse.go` — very powerful idea
+8. `numeral.go` — the main boss, division and mod
