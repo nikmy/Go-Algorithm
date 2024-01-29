@@ -35,12 +35,14 @@ func Mul(m Numeral) Term {
 }
 
 /*
-Kleene's trick:
+   Kleene's trick:
 
-Let's define incStep(N) as Nth iteration of { Pair _ n |-> Pair n (Inc n) },
-so it maps (Pair `0` `0`) to (Pair `N-1` `N`), and the left side
-of N(incStep)(Pair `0` `0`) is "decremented" N
+   Let's define incStep(N) as Nth iteration of { Pair _ n |-> Pair n (Inc n) },
+   so it maps (Pair `0` `0`) to (Pair `N-1` `N`), and the left side
+   of N(incStep)(Pair `0` `0`) is "decremented" N
 */
+
+// incStep p == Pair (Right p) (Inc (Right p))
 func incStep(p Term) Term {
 	return Pair(Right(p))(Inc(Right(p)))
 }
@@ -58,38 +60,38 @@ func Sub(m Numeral) Term {
 }
 
 /*
-	Tricky one is division. Recursive definition is
+   Tricky one is division. Recursive definition is
 
-		div(m, n) == (m <= n) ? 0 : 1 + div(m - n, n),
+       div(m, n) == (m <= n) ? 0 : 1 + div(m - n, n),
 
-	or in lambda notation
+   or in lambda notation
 
-		Div m n == (Less m n) Zero Inc(Div (Sub m n) n) (1).
+       Div m n == (Less m n) Zero Inc(Div (Sub m n) n) (1).
 
-	We cannot use built-in recursion, so we need to find
-	non-recursive representation of Div.
+   We cannot use built-in recursion, so we need to find
+   non-recursive representation of Div.
 
-	If we let Div be a variable in (1), we can rewrite (1) as
+   If we let Div be a variable in (1), we can rewrite (1) as
 
-		Div m n = (genDivBy n Div) m,
+       Div m n = (genDivBy n Div) m,
 
-	where
+   where
 
-		genDivBy n G = \m . (Less m n) Zero Inc(G (Sub m n)).
+       genDivBy n G = \m . (Less m n) Zero Inc(G (Sub m n)).
 
-	Note: we need function of one argument to be passed to Y-combinator.
-	Since we need n in place inside and outside G's call, we need to
-	rearrange arguments.
+   Note: we need function of one argument to be passed to Y-combinator.
+   Since we need n in place inside and outside G's call, we need to
+   rearrange arguments.
 
-	So, if a solution exists, Div is a fixed point of genDiv
-	combinator. To find a fixed point, we can use powerful
-	tool Y-combinator (see recursion.go):
+   So, if a solution exists, Div is a fixed point of genDiv
+   combinator. To find a fixed point, we can use powerful
+   tool Y-combinator (see recursion.go):
 
-		Y == \g.(\x.\y.g(xx)y))(\x.\y.g(xx)y)
+       Y == \g.(\x.\y.g(xx)y))(\x.\y.g(xx)y)
 
-	So, now we have a formula for Div:
+   So, now we have a formula for Div:
 
-		Div m n == Y ( genDivBy n ) m
+       Div m n == Y (genDivBy n) m
 */
 
 // genDivBy n == \G. \m . LessOrEqual(m, n) Zero Inc(G (Sub m n))

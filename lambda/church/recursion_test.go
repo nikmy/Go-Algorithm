@@ -28,3 +28,20 @@ func TestFib(t *testing.T) {
 		assertInt(t, p, Fib(n))
 	}
 }
+
+func TestIsPrime(t *testing.T) {
+	primes := make([]bool, len(nums))
+	for i := 2; i < len(nums); i++ {
+		primes[i] = true
+		for d := 2; d*d <= i; d++ {
+			if i%d == 0 {
+				primes[i] = false
+				break
+			}
+		}
+	}
+
+	for i, n := range nums {
+		assertBool(t, primes[i], IsPrime(n), "%d check fail", i)
+	}
+}

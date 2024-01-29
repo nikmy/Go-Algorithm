@@ -1,9 +1,10 @@
 package church
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func evalInt(i Numeral) int {
@@ -23,7 +24,6 @@ func evalBool(b Boolean) bool {
 	b(mark)(Zero)(nil)
 	return value
 }
-
 
 func assertInt(t *testing.T, exp int, got Numeral, msgAndArgs ...any) {
 	assert.Equal(t, exp, evalInt(got), msgAndArgs...)
