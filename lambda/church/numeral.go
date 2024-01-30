@@ -62,7 +62,7 @@ func Sub(m Numeral) Term {
 /*
    Tricky one is division. Recursive definition is
 
-       div(m, n) == (m <= n) ? 0 : 1 + div(m - n, n),
+       div(m, n) == (m < n) ? 0 : 1 + div(m - n, n),
 
    or in lambda notation
 
