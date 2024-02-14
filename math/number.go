@@ -24,3 +24,10 @@ func Distance[T Real](a, b T) T {
 	}
 	return b - a
 }
+
+func Abs[T Real](x T) T {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
