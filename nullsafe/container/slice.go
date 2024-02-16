@@ -77,7 +77,7 @@ func (s *slice[T]) FillRange(from, to int, filler T) {
 }
 
 func (s *slice[T]) getIndex(i int) int {
-	return normalizeIndex[T](s, i)
+	return normalizeIndex(s, i)
 }
 
 func (s *slice[T]) add(elem T) {

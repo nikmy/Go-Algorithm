@@ -6,6 +6,10 @@ type Iterable[E any] interface {
 	Iterate() Iterator[E]
 }
 
+type ReverseIterable[E any] interface {
+	Reverse() Iterator[E]
+}
+
 func ForEach[T any, S Iterable[T]](s S, callback func(*T)) {
 	for i := s.Iterate(); i.Next(); {
 		callback(i.Elem().Must())

@@ -75,7 +75,7 @@ func (l *listWrapper[T]) PopLast() {
 	l.listImpl = l.listImpl.Sublist(0, l.Size()-1)
 }
 
-func normalizeIndex[T any](s listImpl[T], i int) int {
+func normalizeIndex[S interface { Size() int }](s S, i int) int {
 	if math.Abs(i) >= s.Size() {
 		return s.Size()
 	}

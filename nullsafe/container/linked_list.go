@@ -120,7 +120,7 @@ func (l *linkedList[T]) nodeAt(index int) llNode[T] {
 }
 
 func (l *linkedList[T]) getIndex(index int) int {
-	return normalizeIndex[T](l, index)
+	return normalizeIndex(l, index)
 }
 
 func (l *linkedList[T]) Iterate() iter.Iterator[T] {
