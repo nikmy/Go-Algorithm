@@ -1,96 +1,109 @@
 package heap
 
-func Make[T any](lessFunc func(T, T) bool, elems []T) *Heap[T] {
-	h := &Heap[T]{
-		comp: lessFunc,
-		data: elems,
+import "cmp"
+
+type Heap[T any] interface {
+	Min() T
+	Size() int
+	Empty() bool
+
+	Push(T)
+	Pop() T
+}
+
+func Heapify[T cmp.Ordered](elems []T) Heap[T] {
+	return Make(cmp.Compare[T], Init[T](elems))
+}
+
+func Init[T any](elems []T) func (*hImpl[T]) {
+	return func(h *hImpl[T]) {
+		h.data = elems
+		h.heapify()
 	}
-	h.heapify()
+}
+
+func ToMax[T any](h *hImpl[T]) {
+	h.comp = func(x, y T) int { return -h.comp(x, y) }
+}
+
+func Make[T any](comp func(T, T) int, opts ...func(*hImpl[T])) Heap[T] {
+	h := &hImpl[T]{
+		comp: comp,
+	}
+	for _, opt := range opts {
+		opt(h)
+	}
 	return h
 }
 
-type Heap[T any] struct {
-	comp func(T, T) bool
+type hImpl[T any] struct {
+	comp func(T, T) int
 	data []T
-	size int
 }
 
-func (h *Heap[T]) heapify() {
-	for i := len(h.data) / 2; i >= 0; i-- {
-		h.siftDown(i)
+func (pq *hImpl[T]) heapify() {
+	for i := len(pq.data) / 2; i >= 0; i-- {
+		pq.siftDown(i)
 	}
 }
 
-func (h *Heap[T]) Size() int {
-	return h.size
+func (pq *hImpl[T]) Size() int {
+	return len(pq.data)
 }
 
-func (h *Heap[T]) Empty() bool {
-	return h.Size() == 0
+func (pq *hImpl[T]) Empty() bool {
+	return pq.Size() == 0
 }
 
-func (h *Heap[T]) Insert(x T) {
-	h.data = append(h.data, x)
-	h.size++
-	h.siftUp(len(h.data) - 1)
+func (pq *hImpl[T]) Min() T {
+	return pq.data[0]
 }
 
-func (h *Heap[T]) GetMin() T {
-	return h.data[0]
+func (pq *hImpl[T]) Push(x T) {
+	pq.data = append(pq.data, x)
+	pq.siftUp(len(pq.data) - 1)
 }
 
-func (h *Heap[T]) ExtractMin() T {
-	m := h.data[0]
-	h.swap(0, len(h.data)-1)
-	h.size--
-	h.siftDown(0)
+func (pq *hImpl[T]) Pop() T {
+	m := pq.data[0]
+	last := len(pq.data) - 1
+	pq.swap(0, last)
+	pq.data = pq.data[:last]
+	pq.siftDown(0)
 	return m
 }
 
-func (h *Heap[T]) Modify(i int, val T) {
-	prev := h.data[i]
-	h.data[i] = val
-	if h.comp(prev, val) {
-		h.siftDown(i)
-	} else {
-		h.siftUp(i)
-	}
-}
-
-func (h *Heap[T]) siftUp(i int) {
-	for h.less(i, (i-1)/2) {
-		h.swap(i, (i-1)/2)
+func (pq *hImpl[T]) siftUp(i int) {
+	for pq.less(i, (i-1)/2) {
+		pq.swap(i, (i-1)/2)
 		i = (i - 1) / 2
 	}
 }
 
-func (h *Heap[T]) siftDown(i int) {
-	for 2*i+1 < h.Size() {
+func (pq *hImpl[T]) siftDown(i int) {
+	for 2*i+1 < pq.Size() {
 		left := 2*i + 1
 		right := 2*i + 2
 		j := left
-		if right < h.Size() && h.less(right, left) {
+		if right < pq.Size() && pq.less(right, left) {
 			j = right
 		}
-		if h.lessOrEqual(i, j) {
+		if pq.lessOrEqual(i, j) {
 			break
 		}
-		h.swap(i, j)
+		pq.swap(i, j)
 		i = j
 	}
 }
 
-func (h *Heap[T]) swap(i, j int) {
-	h.data[i], h.data[j] = h.data[j], h.data[i]
+func (pq *hImpl[T]) swap(i, j int) {
+	pq.data[i], pq.data[j] = pq.data[j], pq.data[i]
 }
 
-func (h *Heap[T]) less(i, j int) bool {
-	return h.comp(h.data[i], h.data[j])
+func (pq *hImpl[T]) less(i, j int) bool {
+	return pq.comp(pq.data[i], pq.data[j]) < 0
 }
 
-func (h *Heap[T]) lessOrEqual(i, j int) bool {
-	if h.less(i, j) {
-		return true
-	}
-	return !h.less(j, i)
+func (pq *hImpl[T]) lessOrEqual(i, j int) bool {
+	return pq.comp(pq.data[i], pq.data[j]) <= 0
 }

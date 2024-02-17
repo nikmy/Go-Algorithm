@@ -4,20 +4,22 @@ import (
 	"slices"
 )
 
-func Sort[T any](lessFunc func(T, T) bool, slice []T) []T {
+func Sort[T any](comp func(T, T) int, slice []T) []T {
 	s := slices.Clone(slice)
-	SortInPlace(lessFunc, s)
+	SortInPlace(comp, s)
 	return s
 }
 
-func SortInPlace[T any](lessFunc func(T, T) bool, slice []T) {
-	h := Make(func(a, b T) bool { return !lessFunc(a, b) }, slice)
-	for h.Size() > 0 {
-		h.ExtractMin()
+func SortInPlace[T any](comp func(T, T) int, slice []T) {
+	h := Make(comp, Init(slice))
+
+	i := 0
+	for !h.Empty() {
+		slice[i] = h.Pop()
 	}
 }
 
-func MergeSorted[T any](lessFunc func(T, T) bool, lists ...[]T) []T {
+func MergeSorted[T any](comp func(T, T) int, lists ...[]T) []T {
 	var bufferSize int
 	for _, list := range lists {
 		bufferSize += len(list)
@@ -32,13 +34,17 @@ func MergeSorted[T any](lessFunc func(T, T) bool, lists ...[]T) []T {
 		index[i] = i
 	}
 
-	h := Make(func(i, j int) bool { return lessFunc(lists[i][pos[i]], lists[j][pos[j]]) }, index)
+	h := Make(
+		func(i, j int) int { return comp(lists[i][pos[i]], lists[j][pos[j]]) },
+		Init(index),
+	)
+
 	for !h.Empty() {
-		next := h.ExtractMin()
+		next := h.Min()
 		buffer = append(buffer, lists[next][pos[next]])
 		if next < len(lists[next]) {
 			pos[next]++
-			h.Insert(next)
+			h.Push(next)
 		}
 	}
 	return buffer
