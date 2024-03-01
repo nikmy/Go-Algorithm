@@ -15,7 +15,7 @@ func Heapify[T cmp.Ordered](elems []T) Heap[T] {
 	return Make(cmp.Compare[T], Init[T](elems))
 }
 
-func Init[T any](elems []T) func (*hImpl[T]) {
+func Init[T any](elems []T) func(*hImpl[T]) {
 	return func(h *hImpl[T]) {
 		h.data = elems
 		h.heapify()
@@ -41,69 +41,69 @@ type hImpl[T any] struct {
 	data []T
 }
 
-func (pq *hImpl[T]) heapify() {
-	for i := len(pq.data) / 2; i >= 0; i-- {
-		pq.siftDown(i)
+func (h *hImpl[T]) heapify() {
+	for i := len(h.data) / 2; i >= 0; i-- {
+		h.siftDown(i)
 	}
 }
 
-func (pq *hImpl[T]) Size() int {
-	return len(pq.data)
+func (h *hImpl[T]) Size() int {
+	return len(h.data)
 }
 
-func (pq *hImpl[T]) Empty() bool {
-	return pq.Size() == 0
+func (h *hImpl[T]) Empty() bool {
+	return h.Size() == 0
 }
 
-func (pq *hImpl[T]) Min() T {
-	return pq.data[0]
+func (h *hImpl[T]) Min() T {
+	return h.data[0]
 }
 
-func (pq *hImpl[T]) Push(x T) {
-	pq.data = append(pq.data, x)
-	pq.siftUp(len(pq.data) - 1)
+func (h *hImpl[T]) Push(x T) {
+	h.data = append(h.data, x)
+	h.siftUp(len(h.data) - 1)
 }
 
-func (pq *hImpl[T]) Pop() T {
-	m := pq.data[0]
-	last := len(pq.data) - 1
-	pq.swap(0, last)
-	pq.data = pq.data[:last]
-	pq.siftDown(0)
+func (h *hImpl[T]) Pop() T {
+	m := h.data[0]
+	last := len(h.data) - 1
+	h.swap(0, last)
+	h.data = h.data[:last]
+	h.siftDown(0)
 	return m
 }
 
-func (pq *hImpl[T]) siftUp(i int) {
-	for pq.less(i, (i-1)/2) {
-		pq.swap(i, (i-1)/2)
+func (h *hImpl[T]) siftUp(i int) {
+	for h.less(i, (i-1)/2) {
+		h.swap(i, (i-1)/2)
 		i = (i - 1) / 2
 	}
 }
 
-func (pq *hImpl[T]) siftDown(i int) {
-	for 2*i+1 < pq.Size() {
+func (h *hImpl[T]) siftDown(i int) {
+	for 2*i+1 < h.Size() {
 		left := 2*i + 1
 		right := 2*i + 2
 		j := left
-		if right < pq.Size() && pq.less(right, left) {
+		if right < h.Size() && h.less(right, left) {
 			j = right
 		}
-		if pq.lessOrEqual(i, j) {
+		if h.lessOrEqual(i, j) {
 			break
 		}
-		pq.swap(i, j)
+		h.swap(i, j)
 		i = j
 	}
 }
 
-func (pq *hImpl[T]) swap(i, j int) {
-	pq.data[i], pq.data[j] = pq.data[j], pq.data[i]
+func (h *hImpl[T]) swap(i, j int) {
+	h.data[i], h.data[j] = h.data[j], h.data[i]
 }
 
-func (pq *hImpl[T]) less(i, j int) bool {
-	return pq.comp(pq.data[i], pq.data[j]) < 0
+func (h *hImpl[T]) less(i, j int) bool {
+	return h.comp(h.data[i], h.data[j]) < 0
 }
 
-func (pq *hImpl[T]) lessOrEqual(i, j int) bool {
-	return pq.comp(pq.data[i], pq.data[j]) <= 0
+func (h *hImpl[T]) lessOrEqual(i, j int) bool {
+	return h.comp(h.data[i], h.data[j]) <= 0
 }

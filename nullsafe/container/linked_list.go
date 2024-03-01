@@ -19,7 +19,7 @@ func (l *linkedList[T]) Size() int {
 	return l.size
 }
 
-func (l *linkedList[T]) At(index int) Nullable[T] {
+func (l *linkedList[T]) At(index int) Safe[T] {
 	return l.nodeAt(index).Elem()
 }
 
@@ -66,7 +66,7 @@ func (l *linkedList[T]) Sublist(from, to int) listImpl[T] {
 		head = head.Next()
 	}
 
-	subList.head.Nullable.Set(unsafeLLNode[T]{
+	subList.head.Safe.Set(unsafeLLNode[T]{
 		Value: *head.Elem().Must(),
 		next:  head.Next(),
 		prev:  nullNode[T](),
@@ -77,7 +77,7 @@ func (l *linkedList[T]) Sublist(from, to int) listImpl[T] {
 		tail = tail.Next()
 	}
 
-	subList.tail.Nullable.Set(unsafeLLNode[T]{
+	subList.tail.Safe.Set(unsafeLLNode[T]{
 		Value: *head.Elem().Must(),
 		next:  nullNode[T](),
 		prev:  tail.Prev(),
@@ -146,7 +146,7 @@ func (i *llIterator[T]) Next() bool {
 	return !i.curr.IsNull()
 }
 
-func (i *llIterator[T]) Elem() Nullable[T] {
+func (i *llIterator[T]) Elem() Safe[T] {
 	return i.curr.Elem()
 }
 
@@ -159,16 +159,16 @@ func newNode[T any](value any) llNode[T] {
 }
 
 type unsafeLLNode[T any] struct {
-	next  Nullable[unsafeLLNode[T]]
-	prev  Nullable[unsafeLLNode[T]]
+	next  Safe[unsafeLLNode[T]]
+	prev  Safe[unsafeLLNode[T]]
 	Value T
 }
 
 type llNode[T any] struct {
-	Nullable[unsafeLLNode[T]]
+	Safe[unsafeLLNode[T]]
 }
 
-func (n llNode[T]) Elem() Nullable[T] {
+func (n llNode[T]) Elem() Safe[T] {
 	if n.IsNull() {
 		return Null[T]()
 	}

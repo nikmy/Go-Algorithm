@@ -22,8 +22,8 @@ func Fold[T any, S Iterable[T], V any](s S, init V, f func(V, T) V) V {
 	return result
 }
 
-func Reduce[T any, S Iterable[T]](s S, reduceFunc func(T, T) T) Nullable[T] {
-	return Fold(s, Null[T](), func(result Nullable[T], elem T) Nullable[T] {
+func Reduce[T any, S Iterable[T]](s S, reduceFunc func(T, T) T) Safe[T] {
+	return Fold(s, Null[T](), func(result Safe[T], elem T) Safe[T] {
 		if result.IsNull() {
 			result.Set(elem)
 		} else {

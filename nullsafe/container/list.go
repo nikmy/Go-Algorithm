@@ -11,8 +11,8 @@ type List[T any] interface {
 
 	IsEmpty() bool
 
-	First() Nullable[T]
-	Last() Nullable[T]
+	First() Safe[T]
+	Last() Safe[T]
 
 	Fill(filler T)
 	Add(elems ...T)
@@ -26,7 +26,7 @@ type listImpl[T any] interface {
 	Reverse() iter.Iterator[T]
 
 	Size() int
-	At(index int) Nullable[T]
+	At(index int) Safe[T]
 
 	add(elem T)
 
@@ -49,7 +49,7 @@ func (l *listWrapper[T]) IsEmpty() bool {
 	return l.Size() == 0
 }
 
-func (l *listWrapper[T]) First() Nullable[T] {
+func (l *listWrapper[T]) First() Safe[T] {
 	return l.At(0)
 }
 
@@ -63,7 +63,7 @@ func (l *listWrapper[T]) Add(elems ...T) {
 	}
 }
 
-func (l *listWrapper[T]) Last() Nullable[T] {
+func (l *listWrapper[T]) Last() Safe[T] {
 	return l.At(-1)
 }
 
@@ -75,7 +75,7 @@ func (l *listWrapper[T]) PopLast() {
 	l.listImpl = l.listImpl.Sublist(0, l.Size()-1)
 }
 
-func normalizeIndex[S interface { Size() int }](s S, i int) int {
+func normalizeIndex[S interface{ Size() int }](s S, i int) int {
 	if math.Abs(i) >= s.Size() {
 		return s.Size()
 	}

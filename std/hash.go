@@ -4,14 +4,14 @@ type Hashable[K comparable] interface {
 	Hash() K
 }
 
-func Hash[T any, H comparable](x T) H {
+func Hash[T any, H comparable](x T) any {
 	switch h := any(x).(type) {
 	case H:
 		return h
 	case Hashable[H]:
 		return h.Hash()
 	default:
-		panic("bad hash type")
+		return any(x)
 	}
 }
 
@@ -96,4 +96,3 @@ func (s HashSet[H, E]) ToSlice() []E {
 	s.ForEach(func(elem E) { slice = append(slice, elem) })
 	return slice
 }
-

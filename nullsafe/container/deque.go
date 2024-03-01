@@ -44,7 +44,7 @@ func (d *deque[T]) Size() int {
 	return size + (len(d.buffers)-2)*d.bufSize
 }
 
-func (d *deque[T]) At(index int) Nullable[T] {
+func (d *deque[T]) At(index int) Safe[T] {
 	index = normalizeIndex(d, index)
 	bucket, index := d.makeIndex(index)
 	if bucket == -1 {
@@ -91,7 +91,7 @@ func (d *deque[T]) Sublist(from, to int) listImpl[T] {
 	fromBuf, from := d.makeIndex(from)
 	toBuf, to := d.makeIndex(to)
 
-	subDeque.buffers = make([]circularBuffer[T], len(d.buffers) -fromBuf)
+	subDeque.buffers = make([]circularBuffer[T], len(d.buffers)-fromBuf)
 	copy(subDeque.buffers, d.buffers[fromBuf:])
 
 	subDeque.buffers[0].size -= from
@@ -139,7 +139,7 @@ func (c *circularBuffer[T]) Size() int {
 	return c.size
 }
 
-func (c *circularBuffer[T]) At(index int) Nullable[T] {
+func (c *circularBuffer[T]) At(index int) Safe[T] {
 	return Value(c.data[c.getIndex(index)])
 }
 

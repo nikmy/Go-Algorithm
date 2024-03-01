@@ -26,11 +26,11 @@ func NewDiagonalMatrix[T Complex](values ...T) *Matrix[T] {
 }
 
 func NewIdMatrix[T Complex](n int) *Matrix[T] {
-	return NewDiagonalMatrix(slices.Repeat[T](1, n)...)
+	return NewDiagonalMatrix(slices.Filled[T](1, n)...)
 }
 
 func NewZeroMatrix[T Complex](m, n int) *Matrix[T] {
-	return NewDiagonalMatrix(slices.Repeat[T](0, n)...)
+	return NewDiagonalMatrix(slices.Filled[T](0, n)...)
 }
 
 type Matrix[T Complex] [][]T

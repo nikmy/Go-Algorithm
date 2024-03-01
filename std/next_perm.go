@@ -1,4 +1,4 @@
-package draft
+package std
 
 func permute[T any](arr []T, l, r int, gen chan []T) {
 	if l == r {

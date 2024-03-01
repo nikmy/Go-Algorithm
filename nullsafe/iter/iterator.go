@@ -7,7 +7,7 @@ import (
 
 type Iterator[T any] interface {
 	Next() bool
-	Elem() Nullable[T]
+	Elem() Safe[T]
 }
 
 func Advance[T any, Iter Iterator[T]](i Iter, distance int) {
@@ -64,7 +64,7 @@ func (i *chainIterator[T]) Next() bool {
 	return i.currI < len(i.iters)
 }
 
-func (i *chainIterator[T]) Elem() Nullable[T] {
+func (i *chainIterator[T]) Elem() Safe[T] {
 	if i.currI == len(i.iters) {
 		return Null[T]()
 	}

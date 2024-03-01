@@ -1,25 +1,55 @@
 package slices
 
 import (
+	"github.com/nikmy/algo/tools/generic"
 	"golang.org/x/exp/constraints"
 )
 
 func Count[E comparable, S ~[]E](slice S, elem E) int {
 	var cnt int
-	for _, x := range slice {
-		if x == elem {
+	for i := range slice {
+		if slice[i] == elem {
 			cnt++
 		}
 	}
 	return cnt
 }
 
-func Repeat[T any](elem T, n int) []T {
+func Map[From, To any, S ~[]From](slice S, mapper func(From) To) []To {
+	mapped := make([]To, 0, len(slice))
+	for i := range slice {
+		mapped = append(mapped, mapper(slice[i]))
+	}
+	return mapped
+}
+
+func Reduce[E any, S ~[]E](slice S, reducer func(l, r E) E) E {
+	if len(slice) == 0 {
+		return generic.Empty[E]()
+	}
+
+	result := slice[0]
+	for i := range slice {
+		result = reducer(result, slice[i])
+	}
+
+	return result
+}
+
+func Filled[T any](elem T, n int) []T {
 	s := make([]T, n)
 	for i := range s {
 		s[i] = elem
 	}
 	return s
+}
+
+func Generate[T any](n int, gen func(index int) T) []T {
+	a := make([]T, 0, n)
+	for i := range a {
+		a = append(a, gen(i))
+	}
+	return a
 }
 
 type addable interface {

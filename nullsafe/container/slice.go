@@ -20,8 +20,8 @@ func NewSlice[T any](opts SliceOptions[T]) List[T] {
 }
 
 type SliceOptions[T any] struct {
-	Size Nullable[int]
-	Cap  Nullable[int]
+	Size Safe[int]
+	Cap  Safe[int]
 }
 
 type slice[T any] struct {
@@ -32,7 +32,7 @@ func (s *slice[T]) Size() int {
 	return len(s.s)
 }
 
-func (s *slice[T]) At(index int) Nullable[T] {
+func (s *slice[T]) At(index int) Safe[T] {
 	index = s.getIndex(index)
 	if index >= s.Size() {
 		return Null[T]()
@@ -111,6 +111,6 @@ func (i *sliceIterator[T]) Next() bool {
 	return i.pos < i.s.Size()
 }
 
-func (i *sliceIterator[T]) Elem() Nullable[T] {
+func (i *sliceIterator[T]) Elem() Safe[T] {
 	return i.s.At(i.pos)
 }

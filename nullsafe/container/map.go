@@ -7,7 +7,7 @@ type Map[K comparable, V any] interface {
 	Size() int
 	ContainsKey(key K) bool
 	Set(key K, value V)
-	Get(key K) null.Nullable[V]
+	Get(key K) null.Safe[V]
 	Range() map[K]V
 }
 
@@ -34,7 +34,7 @@ func (m hashMap[K, V]) Set(key K, value V) {
 	m[key] = value
 }
 
-func (m hashMap[K, V]) Get(key K) null.Nullable[V] {
+func (m hashMap[K, V]) Get(key K) null.Safe[V] {
 	if v, ok := m[key]; ok {
 		return null.Value(v)
 	}

@@ -10,9 +10,17 @@ import (
 	"time"
 )
 
-func Get[Data any](url string) (Data, error) {
+type testClient struct {
+	url string
+}
+
+func (c *testClient) MakeGetRequest() (*http.Request, error) {
+	return http.NewRequest(http.MethodGet, c.url, nil)
+}
+
+func Get[Data any](c *testClient) (Data, error) {
 	var (
-		request = Async(MakeGetRequest(url))
+		request = Async(c.MakeGetRequest)
 		resp    = Chain(request, FetchHTTP)
 		respF   = Finally(resp, WriteLog)
 		bytes   = Chain(respF, FetchBody)
@@ -21,12 +29,6 @@ func Get[Data any](url string) (Data, error) {
 	)
 
 	return Await(parsedC)
-}
-
-func MakeGetRequest(url string) func() (*http.Request, error) {
-	return func() (*http.Request, error) {
-		return http.NewRequest(http.MethodGet, url, nil)
-	}
 }
 
 func FetchHTTP(req *http.Request) (*http.Response, error) {
