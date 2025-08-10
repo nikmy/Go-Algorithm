@@ -37,27 +37,33 @@ func (l *List) Elements(yield func(int64) bool) {
 	}
 }
 
+func (l *List) IsEmpty() bool {
+	return l.leftmost.next[0].Load() == nil
+}
+
 func (l *List) Find(x int64) bool {
 	return l.leftmost.find(x)
 }
 
 func (l *List) Insert(x int64) (inserted bool) {
-	linksToUpdate, found := l.leftmost.findLinks(x)
+	var linksToUpdate [maxLevel]*tower
+	n, found := l.leftmost.findLinks(linksToUpdate[:], x)
 	if found != nil {
 		// optimize tower creation
 		return false
 	}
 
-	return newTower(x).link(linksToUpdate)
+	return newTower(x).link(linksToUpdate[:n])
 }
 
 func (l *List) Delete(x int64) (deleted bool) {
-	linksToUpdate, target := l.leftmost.findLinks(x)
-	if target == nil || target.elem != x {
+	var linksToUpdate [maxLevel]*tower
+	n, target := l.leftmost.findLinks(linksToUpdate[:], x)
+	if target == nil {
 		return false
 	}
 
-	return target.unlink(linksToUpdate)
+	return target.unlink(linksToUpdate[:n])
 }
 
 func (l *List) String() string {

@@ -151,6 +151,16 @@ func TestList_Visual(t *testing.T) {
 	}
 }
 
+func TestList_IsEmpty(t *testing.T) {
+	t.Parallel()
+
+	list := New()
+	assert.True(t, list.IsEmpty())
+
+	list.Insert(1)
+	assert.False(t, list.IsEmpty())
+}
+
 func TestList_RaceFree(t *testing.T) {
 	t.Run("find-find", func(t *testing.T) {
 		ctrl := newCtrl(t)

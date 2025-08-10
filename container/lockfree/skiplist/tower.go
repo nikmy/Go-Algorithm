@@ -50,9 +50,7 @@ func (t *tower) find(x int64) bool {
 	return false
 }
 
-func (t *tower) findLinks(x int64) ([]*tower, *tower) {
-	links := make([]*tower, len(t.next))
-
+func (t *tower) findLinks(links []*tower, x int64) (int, *tower) {
 	var (
 		node = t
 		next *tower
@@ -67,13 +65,50 @@ func (t *tower) findLinks(x int64) ([]*tower, *tower) {
 	}
 
 	if next != nil && next.elem == x {
-		return links, next
+		return len(t.next), next
 	}
-	return links, nil
+	return len(t.next), nil
+}
+
+// towerState represents state of a tower:
+//  1. tower is created in INIT state;
+//  2. when linked, it turns into CREATED state;
+//  3. when tower.unlink is called in CREATED state, it turns into DELETING state
+type towerState = int32
+
+const (
+	towerStateInit towerState = iota
+	towerStateCreated
+	towerStateDeleting
+)
+
+func (t *tower) link(links []*tower) bool {
+	for level := 0; level < len(t.next); level++ {
+		left := links[level]
+		for {
+			right := left.next[level].Load()
+			for right != nil && right.elem < t.elem {
+				left = right
+				right = right.next[level].Load()
+			}
+			if level == 0 && right != nil && right.elem == t.elem {
+				return false
+			}
+
+			t.next[level].Store(right)
+			if left.next[level].CompareAndSwap(right, t) {
+				break
+			}
+		}
+	}
+
+	t.state.Store(towerStateCreated)
+
+	return true
 }
 
 func (t *tower) unlink(links []*tower) bool {
-	if !t.state.CompareAndSwap(towerStateCreate, towerStateDeleting) {
+	if !t.state.CompareAndSwap(towerStateCreated, towerStateDeleting) {
 		return false
 	}
 
@@ -90,7 +125,7 @@ func (t *tower) unlink(links []*tower) bool {
 				A   (B)   C
 			    |---------^
 
-			2. Make reverse link:
+			3. Make reverse link:
 
 				A <--- B    C
 				|-----------^
@@ -135,40 +170,3 @@ func (t *tower) unlink(links []*tower) bool {
 
 	return true
 }
-
-func (t *tower) link(links []*tower) bool {
-	for level := 0; level < len(t.next); level++ {
-		left := links[level]
-		for {
-			right := left.next[level].Load()
-			for right != nil && right.elem < t.elem {
-				left = right
-				right = right.next[level].Load()
-			}
-			if level == 0 && right != nil && right.elem == t.elem {
-				return false
-			}
-
-			t.next[level].Store(right)
-			if left.next[level].CompareAndSwap(right, t) {
-				break
-			}
-		}
-	}
-
-	t.state.Store(towerStateCreate)
-
-	return true
-}
-
-// towerState represents state of a tower:
-//  1. tower is created in INIT state;
-//  2. when linked, it turns into CREATED state;
-//  3. when tower.unlink is called in CREATED state, it turns into DELETING state
-type towerState = int32
-
-const (
-	towerStateInit towerState = iota
-	towerStateCreate
-	towerStateDeleting
-)
