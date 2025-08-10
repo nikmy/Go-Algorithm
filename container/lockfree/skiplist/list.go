@@ -41,10 +41,13 @@ func (l *List) IsEmpty() bool {
 	return l.leftmost.next[0].Load() == nil
 }
 
+// Find checks whether x is present in the list or not.
 func (l *List) Find(x int64) bool {
 	return l.leftmost.find(x)
 }
 
+// Insert inserts element with value x to the list, if it does not exist.
+// Returns true if element has been inserted by current goroutine.
 func (l *List) Insert(x int64) (inserted bool) {
 	var linksToUpdate [maxLevel]*tower
 	n, found := l.leftmost.findLinks(linksToUpdate[:], x)
@@ -56,6 +59,14 @@ func (l *List) Insert(x int64) (inserted bool) {
 	return newTower(x).link(linksToUpdate[:n])
 }
 
+// Delete removes element with value x from the list, if one exists.
+// Returns true, if element has been deleted by current goroutine.
+//
+// Delete that returns false provides eventual consistency guarantee.
+// If Delete(x) return true, any call of
+// Find(x) (that is sequenced just after Delete via happens-before)
+// will return true. So, if you need to ensure that element is completely
+// deleted after Delete(x) returned false, you may use for-loop with Find(x).
 func (l *List) Delete(x int64) (deleted bool) {
 	var linksToUpdate [maxLevel]*tower
 	n, target := l.leftmost.findLinks(linksToUpdate[:], x)
@@ -66,6 +77,7 @@ func (l *List) Delete(x int64) (deleted bool) {
 	return target.unlink(linksToUpdate[:n])
 }
 
+// String formats elements like a slice.
 func (l *List) String() string {
 	if l == nil || l.leftmost == nil {
 		return "<nil>"

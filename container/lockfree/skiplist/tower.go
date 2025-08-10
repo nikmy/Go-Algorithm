@@ -135,10 +135,6 @@ func (t *tower) unlink(links []*tower) bool {
 		var right *tower
 		for {
 			right = t.next[level].Load()
-			if right == t {
-				// another delete in progress
-				return false
-			}
 			if t.next[level].CompareAndSwap(right, t) {
 				break
 			}

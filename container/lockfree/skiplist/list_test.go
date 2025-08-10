@@ -309,7 +309,7 @@ func TestList_RaceFree(t *testing.T) {
 
 		ctrl.Run(5 * time.Second)
 
-		for i := range &counts {
+		for i := range counts {
 			inserts := counts[i][0].Load()
 			deletes := counts[i][1].Load()
 			assert.Equal(t, inserts, deletes, "inserts (expected) and deletes (actual) disbalanced")
@@ -319,6 +319,148 @@ func TestList_RaceFree(t *testing.T) {
 		assert.Len(t, slices.Collect(list.Elements), 0, "list must be empty")
 
 		t.Logf("list after all operations:\n%s\n", list.SDump())
+	})
+}
+
+func TestList_Serializability(t *testing.T) {
+	t.Parallel()
+
+	t.Run("insert", func(t *testing.T) {
+		ctrl := newCtrl(t)
+
+		list := New()
+		inserted := [51]atomic.Int64{}
+		for i := int64(0); i < 50; i++ {
+			ctrl.Spawn(100, func() {
+				if list.Insert(i) {
+					inserted[i].Add(1)
+				}
+				if list.Insert(i + 1) {
+					inserted[i+1].Add(1)
+				}
+			})
+		}
+
+		ctrl.Run(5 * time.Second)
+
+		for i := range inserted {
+			assert.EqualValues(t, 1, inserted[i].Load(), "element %d is not inserted once", i)
+		}
+	})
+
+	t.Run("delete", func(t *testing.T) {
+		ctrl := newCtrl(t)
+
+		list := Make(generateInts(0, 51, 1)...)
+		deleted := [51]atomic.Int64{}
+
+		for i := int64(0); i < 50; i++ {
+			ctrl.Spawn(100, func() {
+				if list.Delete(i) {
+					deleted[i].Add(1)
+				}
+				if list.Delete(i + 1) {
+					deleted[i+1].Add(1)
+				}
+			})
+		}
+
+		ctrl.Run(5 * time.Second)
+
+		for i := range deleted {
+			assert.EqualValues(t, 1, deleted[i].Load(), "element %d is not deleted once", i)
+		}
+	})
+
+	t.Run("insert and delete", func(t *testing.T) {
+		ctrl := newCtrl(t)
+
+		list := New()
+		inserted := [51]atomic.Int64{}
+		deleted := [51]atomic.Int64{}
+		for i := int64(0); i < 50; i++ {
+			ctrl.Spawn(100, func() {
+				if list.Insert(i) {
+					inserted[i].Add(1)
+				}
+				if list.Delete(i) {
+					deleted[i].Add(1)
+				}
+			})
+		}
+
+		ctrl.Run(5 * time.Second)
+
+		for i := range len(inserted) {
+			assert.EqualValues(t, inserted[i].Load(), deleted[i].Load(), "inserted (expected) != deleted (actual)", i)
+		}
+	})
+
+	t.Run("delete and insert", func(t *testing.T) {
+		ctrl := newCtrl(t)
+
+		list := Make(generateInts(0, 51, 1)...)
+		inserted := [51]atomic.Int64{}
+		deleted := [51]atomic.Int64{}
+		for i := int64(0); i < 50; i++ {
+			ctrl.Spawn(100, func() {
+				if list.Delete(i) {
+					deleted[i].Add(1)
+				}
+				if list.Insert(i) {
+					inserted[i].Add(1)
+				}
+			})
+		}
+
+		ctrl.Run(5 * time.Second)
+
+		for i := range len(inserted) {
+			assert.EqualValues(t, deleted[i].Load(), inserted[i].Load(), "inserted (expected) != deleted (actual)", i)
+		}
+	})
+
+	t.Run("insert and find", func(t *testing.T) {
+		ctrl := newCtrl(t)
+
+		list := New()
+		for i := int64(0); i < 50; i++ {
+			ctrl.Spawn(100, func() {
+				_ = list.Insert(i)
+				assert.True(t, list.Find(i))
+			})
+		}
+
+		ctrl.Run(5 * time.Second)
+	})
+
+	t.Run("delete and find", func(t *testing.T) {
+		ctrl := newCtrl(t)
+
+		list := Make(generateInts(0, 51, 1)...)
+		for i := int64(0); i < 50; i++ {
+			ctrl.Spawn(100, func() {
+				if list.Delete(i) {
+					assert.False(t, list.Find(i))
+				}
+			})
+		}
+
+		ctrl.Run(5 * time.Second)
+	})
+
+	t.Run("delete eventual consistency", func(t *testing.T) {
+		ctrl := newCtrl(t)
+
+		list := Make(generateInts(0, 51, 1)...)
+		for i := int64(0); i < 50; i++ {
+			ctrl.Spawn(100, func() {
+				_ = list.Delete(i)
+				assert.Eventually(t, func() bool { return !list.Find(i) }, time.Second, 100*time.Millisecond)
+			})
+		}
+
+		ctrl.Run(5 * time.Second)
 	})
 }
 
