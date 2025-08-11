@@ -26,14 +26,18 @@ func MakeGeneric[T cmp.Ordered](values ...T) *GenericList[T] {
 	return l
 }
 
+// GenericList is generalized skip list for ordered types.
 type GenericList[T cmp.Ordered] struct {
 	leftmost *genericTower[T]
 }
 
-func (l *GenericList[T]) Find(x T) bool {
+// Lookup returns whether element is in the list or not.
+func (l *GenericList[T]) Lookup(x T) bool {
 	return l.leftmost.find(x)
 }
 
+// Insert inserts element with value x to the list, if it does not exist.
+// Returns true, if element has been deleted by current goroutine.
 func (l *GenericList[T]) Insert(x T) bool {
 	var linksToUpdate [maxLevel]*genericTower[T]
 	n, found := l.leftmost.findLinks(linksToUpdate[:], x)
@@ -43,6 +47,8 @@ func (l *GenericList[T]) Insert(x T) bool {
 	return newGenericTower[T](x).link(linksToUpdate[:n])
 }
 
+// Delete removes element with value x from the list, if one exists.
+// Returns true, if element has been deleted by current goroutine.
 func (l *GenericList[T]) Delete(x T) bool {
 	var linksToUpdate [maxLevel]*genericTower[T]
 	n, target := l.leftmost.findLinks(linksToUpdate[:], x)
@@ -182,6 +188,10 @@ func (t *genericTower[T]) findLinks(links []*genericTower[T], x T) (int, *generi
 	for level := len(t.next) - 1; level >= 0; level-- {
 		next = node.next[level].Load()
 		for next != nil && next.elem < x {
+			if next.state.Load() == towerStateDeleting {
+				next = next.next[level].Load()
+				continue
+			}
 			node = next
 			next = next.next[level].Load()
 		}

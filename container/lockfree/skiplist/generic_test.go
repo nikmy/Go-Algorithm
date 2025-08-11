@@ -62,8 +62,8 @@ func TestList_Find(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Logf("dump:\n%s\n", tt.list.SDump())
-			if got := tt.list.Find(tt.elem); got != tt.want {
-				t.Errorf("List.Find(%d) = %v, want %v", tt.elem, got, tt.want)
+			if got := tt.list.Lookup(tt.elem); got != tt.want {
+				t.Errorf("List.Lookup(%d) = %v, want %v", tt.elem, got, tt.want)
 			}
 		})
 	}
@@ -167,11 +167,11 @@ func TestList_RaceFree(t *testing.T) {
 		list := MakeGeneric[int64](generateInts(2, 11, 2)...)
 		for i := int64(2); i <= 10; i += 2 {
 			ctrl.Spawn(200, func() {
-				assert.Truef(t, list.Find(i), "missing element %d", i)
+				assert.Truef(t, list.Lookup(i), "missing element %d", i)
 			})
 		}
 		for i := int64(1); i <= 9; i += 2 {
-			ctrl.Spawn(200, func() { assert.Falsef(t, list.Find(i), "unexpected element %d", i) })
+			ctrl.Spawn(200, func() { assert.Falsef(t, list.Lookup(i), "unexpected element %d", i) })
 		}
 
 		ctrl.Run(5 * time.Second)
@@ -204,7 +204,7 @@ func TestList_RaceFree(t *testing.T) {
 		inserted := [50]atomic.Int64{}
 		for i := int64(0); i < 50; i++ {
 			ctrl.Spawn(400, func() {
-				_ = list.Find(i)
+				_ = list.Lookup(i)
 
 				ok := list.Insert(i)
 				if ok {
@@ -212,7 +212,7 @@ func TestList_RaceFree(t *testing.T) {
 					assert.Lessf(t, n, 2, "multiple insertion: %d", n)
 				}
 
-				ok = list.Find(i)
+				ok = list.Lookup(i)
 				assert.Truef(t, ok, "can't found element %d after insertion", i)
 			})
 		}
@@ -258,7 +258,7 @@ func TestList_RaceFree(t *testing.T) {
 		deleted := [50]atomic.Int64{}
 		for i := int64(0); i < 50; i++ {
 			ctrl.Spawn(400, func() {
-				_ = list.Find(i * 2)
+				_ = list.Lookup(i * 2)
 
 				ok := list.Delete(i*2 + 1)
 				assert.Falsef(t, ok, "deleted element %d that does not exist", i*2+1)
@@ -269,9 +269,7 @@ func TestList_RaceFree(t *testing.T) {
 					assert.Lessf(t, n, 2, "multiple delete of %d: %d", i*2, n)
 				}
 
-				if ok {
-					assert.Falsef(t, list.Find(i*2), "element %d found after deletion", i*2)
-				}
+				assert.Falsef(t, list.Lookup(i*2), "element %d found after deletion", i*2)
 			})
 		}
 
@@ -323,9 +321,35 @@ func TestList_RaceFree(t *testing.T) {
 }
 
 func TestList_Serializability(t *testing.T) {
+	//  Serializability guarantees:
+	//   ___________________________________
+	//  |    Operations    |  Second result |
+	//  |-----------------------------------|
+	//  | Insert -> Lookup |     true       |
+	//  | Insert -> Delete |     true       |
+	//  | Insert -> Insert |     false      |
+	//  | Delete -> Lookup |     false      |
+	//  | Delete -> Delete |     false      |
+	//  | Delete -> Insert |     false      |
+	//  |__________________|________________|
+
 	t.Parallel()
 
-	t.Run("insert", func(t *testing.T) {
+	t.Run("insert then lookup", func(t *testing.T) {
+		ctrl := newCtrl(t)
+
+		list := NewGeneric[int64]()
+		for i := int64(0); i < 50; i++ {
+			ctrl.Spawn(100, func() {
+				_ = list.Insert(i)
+				assert.True(t, list.Lookup(i))
+			})
+		}
+
+		ctrl.Run(5 * time.Second)
+	})
+
+	t.Run("insert then insert", func(t *testing.T) {
 		ctrl := newCtrl(t)
 
 		list := NewGeneric[int64]()
@@ -348,7 +372,7 @@ func TestList_Serializability(t *testing.T) {
 		}
 	})
 
-	t.Run("delete", func(t *testing.T) {
+	t.Run("delete then delete", func(t *testing.T) {
 		ctrl := newCtrl(t)
 
 		list := MakeGeneric[int64](generateInts(0, 51, 1)...)
@@ -372,7 +396,7 @@ func TestList_Serializability(t *testing.T) {
 		}
 	})
 
-	t.Run("insert and delete", func(t *testing.T) {
+	t.Run("insert then delete", func(t *testing.T) {
 		ctrl := newCtrl(t)
 
 		list := NewGeneric[int64]()
@@ -396,7 +420,7 @@ func TestList_Serializability(t *testing.T) {
 		}
 	})
 
-	t.Run("delete and insert", func(t *testing.T) {
+	t.Run("delete then insert", func(t *testing.T) {
 		ctrl := newCtrl(t)
 
 		list := MakeGeneric[int64](generateInts(0, 51, 1)...)
@@ -420,43 +444,14 @@ func TestList_Serializability(t *testing.T) {
 		}
 	})
 
-	t.Run("insert and find", func(t *testing.T) {
-		ctrl := newCtrl(t)
-
-		list := NewGeneric[int64]()
-		for i := int64(0); i < 50; i++ {
-			ctrl.Spawn(100, func() {
-				_ = list.Insert(i)
-				assert.True(t, list.Find(i))
-			})
-		}
-
-		ctrl.Run(5 * time.Second)
-	})
-
-	t.Run("delete and find", func(t *testing.T) {
-		ctrl := newCtrl(t)
-
-		list := MakeGeneric[int64](generateInts(0, 51, 1)...)
-		for i := int64(0); i < 50; i++ {
-			ctrl.Spawn(100, func() {
-				if list.Delete(i) {
-					assert.False(t, list.Find(i))
-				}
-			})
-		}
-
-		ctrl.Run(5 * time.Second)
-	})
-
-	t.Run("delete eventual consistency", func(t *testing.T) {
+	t.Run("delete then lookup", func(t *testing.T) {
 		ctrl := newCtrl(t)
 
 		list := MakeGeneric[int64](generateInts(0, 51, 1)...)
 		for i := int64(0); i < 50; i++ {
 			ctrl.Spawn(100, func() {
 				_ = list.Delete(i)
-				assert.Eventually(t, func() bool { return !list.Find(i) }, time.Second, 100*time.Millisecond)
+				assert.False(t, list.Lookup(i))
 			})
 		}
 
