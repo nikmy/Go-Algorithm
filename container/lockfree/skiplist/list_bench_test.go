@@ -3,7 +3,6 @@ package skiplist
 import (
 	"fmt"
 	"math/rand/v2"
-	"sync"
 	"testing"
 	"unsafe"
 )
@@ -73,7 +72,7 @@ func BenchmarkList_Find(b *testing.B) {
 }
 
 func BenchmarkList_Insert(b *testing.B) {
-	const mod = int64(1<<31 - 1)
+	const mod = int64(1<<32 - 1)
 
 	list := New()
 	b.ReportAllocs()
@@ -125,38 +124,6 @@ func BenchmarkList_Stress(b *testing.B) {
 				list.Insert(x)
 			case 2:
 				list.Delete(x)
-			}
-		}
-	})
-}
-
-func BenchmarkLock(b *testing.B) {
-	b.SetParallelism(32)
-
-	var lock sync.Mutex
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			lock.Lock()
-			lock.Unlock()
-		}
-	})
-}
-
-func BenchmarkSharedLock(b *testing.B) {
-	b.SetParallelism(32)
-
-	var lock sync.RWMutex
-	b.RunParallel(func(pb *testing.PB) {
-		seed := uint64(uintptr(unsafe.Pointer(pb)))
-		mask := uint64(1<<32 - 1)
-		rnd := rand.New(rand.NewPCG(seed&mask, seed^mask))
-		for pb.Next() {
-			if rnd.Int()%3 == 0 {
-				lock.RLock()
-				lock.RUnlock()
-			} else {
-				lock.Lock()
-				lock.Unlock()
 			}
 		}
 	})

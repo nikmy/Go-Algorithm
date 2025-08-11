@@ -1,10 +1,7 @@
 package skiplist
 
 import (
-	"context"
-	"runtime"
 	"slices"
-	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -12,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestList_Find(t *testing.T) {
+func TestGeneric_Find(t *testing.T) {
 	t.Parallel()
 
 	tests := [...]struct {
@@ -69,7 +66,7 @@ func TestList_Find(t *testing.T) {
 	}
 }
 
-func TestList_Insert(t *testing.T) {
+func TestGeneric_Insert(t *testing.T) {
 	t.Parallel()
 
 	l := MakeGeneric[int64](1, 2, 3)
@@ -81,7 +78,7 @@ func TestList_Insert(t *testing.T) {
 	}
 }
 
-func TestList_Delete(t *testing.T) {
+func TestGeneric_Delete(t *testing.T) {
 	t.Parallel()
 
 	l := MakeGeneric[int64](1, 2, 3)
@@ -96,7 +93,7 @@ func TestList_Delete(t *testing.T) {
 	}
 }
 
-func TestList_Elements(t *testing.T) {
+func TestGeneric_Elements(t *testing.T) {
 	t.Parallel()
 
 	t.Run("empty list", func(t *testing.T) {
@@ -118,7 +115,7 @@ func TestList_Elements(t *testing.T) {
 	})
 }
 
-func TestList_Visual(t *testing.T) {
+func TestGeneric_Visual(t *testing.T) {
 	t.Parallel()
 
 	tests := [...]struct {
@@ -151,7 +148,7 @@ func TestList_Visual(t *testing.T) {
 	}
 }
 
-func TestList_IsEmpty(t *testing.T) {
+func TestGeneric_IsEmpty(t *testing.T) {
 	t.Parallel()
 
 	list := NewGeneric[int64]()
@@ -161,7 +158,7 @@ func TestList_IsEmpty(t *testing.T) {
 	assert.False(t, list.IsEmpty())
 }
 
-func TestList_RaceFree(t *testing.T) {
+func TestGeneric_RaceFree(t *testing.T) {
 	t.Run("find-find", func(t *testing.T) {
 		ctrl := newCtrl(t)
 		list := MakeGeneric[int64](generateInts(2, 11, 2)...)
@@ -320,7 +317,7 @@ func TestList_RaceFree(t *testing.T) {
 	})
 }
 
-func TestList_Serializability(t *testing.T) {
+func TestGeneric_Serializability(t *testing.T) {
 	//  Serializability guarantees:
 	//   ___________________________________
 	//  |    Operations    |  Second result |
@@ -457,58 +454,4 @@ func TestList_Serializability(t *testing.T) {
 
 		ctrl.Run(5 * time.Second)
 	})
-}
-
-func generateInts(start, end, step int) []int64 {
-	ints := make([]int64, 0, (end-start)/step+1)
-	for i := start; i < end; i += step {
-		ints = append(ints, int64(i))
-	}
-	return ints
-}
-
-func newCtrl(t *testing.T) *pController {
-	return &pController{
-		t:  t,
-		do: make(chan struct{}),
-	}
-}
-
-type pController struct {
-	t  *testing.T
-	wg sync.WaitGroup
-	do chan struct{}
-	n  atomic.Int64
-}
-
-func (c *pController) Run(timeout time.Duration) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	close(c.do)
-	done := make(chan struct{})
-	go func() {
-		defer close(done)
-		c.wg.Wait()
-	}()
-	select {
-	case <-done:
-	case <-ctx.Done():
-		stack := make([]byte, 100_000)
-		n := runtime.Stack(stack, true)
-		assert.Failf(c.t, "timed out", "%d goroutines stuck:\n--- stacktrace ---\n%s", c.n.Load(), stack[:n])
-	}
-}
-
-func (c *pController) Spawn(n int, g func()) {
-	c.wg.Add(n)
-	c.n.Add(int64(n))
-	for i := 0; i < n; i++ {
-		go func() {
-			defer c.wg.Done()
-			<-c.do
-			g()
-			c.n.Add(-1)
-		}()
-	}
 }

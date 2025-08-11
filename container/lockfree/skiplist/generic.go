@@ -253,7 +253,7 @@ func (t *genericTower[T]) unlink(links []*genericTower[T]) bool {
 				|-----------^
 		*/
 
-		// Step 1: announce deletion (make a loop link)
+		// Step 1: make a loop link
 		var right *genericTower[T]
 		for {
 			right = t.next[level].Load()

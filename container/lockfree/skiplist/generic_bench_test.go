@@ -3,12 +3,11 @@ package skiplist
 import (
 	"fmt"
 	"math/rand/v2"
-	"sync"
 	"testing"
 	"unsafe"
 )
 
-func BenchmarkMake(b *testing.B) {
+func BenchmarkMakeGeneric(b *testing.B) {
 	values := generateInts(-1_000, 1_000, 1)
 	rand.Shuffle(len(values), func(i, j int) { values[i], values[j] = values[j], values[i] })
 
@@ -17,7 +16,7 @@ func BenchmarkMake(b *testing.B) {
 		b.SetParallelism(16)
 		b.RunParallel(func(pb *testing.PB) {
 			for pb.Next() {
-				_ = Make(values[:len(values)/100]...)
+				_ = MakeGeneric(values[:len(values)/100]...)
 			}
 		})
 	})
@@ -43,7 +42,7 @@ func BenchmarkMake(b *testing.B) {
 	})
 }
 
-func BenchmarkList_Find(b *testing.B) {
+func BenchmarkGenericList_Lookup(b *testing.B) {
 	sizes := []int64{100, 10_000, 1_000_000}
 	parallel := []int{1, 16, 32}
 	for _, p := range parallel {
@@ -58,7 +57,7 @@ func BenchmarkList_Find(b *testing.B) {
 				b.RunParallel(func(pb *testing.PB) {
 					i := rand.Int64() % size
 					for pb.Next() {
-						if !list.Find(i) {
+						if !list.Lookup(i) {
 							panic(fmt.Sprintf("must be found"))
 						}
 						i += 7
@@ -72,7 +71,7 @@ func BenchmarkList_Find(b *testing.B) {
 	}
 }
 
-func BenchmarkList_Insert(b *testing.B) {
+func BenchmarkGenericList_Insert(b *testing.B) {
 	const mod = int64(1<<31 - 1)
 
 	list := NewGeneric[int64]()
@@ -88,7 +87,7 @@ func BenchmarkList_Insert(b *testing.B) {
 	})
 }
 
-func BenchmarkList_Delete(b *testing.B) {
+func BenchmarkGenericList_Delete(b *testing.B) {
 	list := MakeGeneric(generateInts(-1_000_000, 1_000_000, 1)...)
 	b.ReportAllocs()
 	b.SetParallelism(16)
@@ -107,7 +106,7 @@ func BenchmarkList_Delete(b *testing.B) {
 	})
 }
 
-func BenchmarkList_Stress(b *testing.B) {
+func BenchmarkGenericList_Stress(b *testing.B) {
 	list := MakeGeneric(generateInts(-1_000, 1_000, 4)...)
 
 	b.ReportAllocs()
@@ -120,43 +119,11 @@ func BenchmarkList_Stress(b *testing.B) {
 			x := rnd.Int64()
 			switch rnd.Int() % 3 {
 			case 0:
-				list.Find(x)
+				list.Lookup(x)
 			case 1:
 				list.Insert(x)
 			case 2:
 				list.Delete(x)
-			}
-		}
-	})
-}
-
-func BenchmarkLock(b *testing.B) {
-	b.SetParallelism(32)
-
-	var lock sync.Mutex
-	b.RunParallel(func(pb *testing.PB) {
-		for pb.Next() {
-			lock.Lock()
-			lock.Unlock()
-		}
-	})
-}
-
-func BenchmarkSharedLock(b *testing.B) {
-	b.SetParallelism(32)
-
-	var lock sync.RWMutex
-	b.RunParallel(func(pb *testing.PB) {
-		seed := uint64(uintptr(unsafe.Pointer(pb)))
-		mask := uint64(1<<32 - 1)
-		rnd := rand.New(rand.NewPCG(seed&mask, seed^mask))
-		for pb.Next() {
-			if rnd.Int()%3 == 0 {
-				lock.RLock()
-				lock.RUnlock()
-			} else {
-				lock.Lock()
-				lock.Unlock()
 			}
 		}
 	})
