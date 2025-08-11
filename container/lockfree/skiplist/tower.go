@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	maxLevel = 32
+	maxLevel = 16
 )
 
 func newTower(x int64) *tower {
